@@ -100,7 +100,7 @@
                 </div>
                 <group>
                     <group>
-                        <field name="company_id" options="{'no_create': True, 'no_open': True}" groups="base.group_multi_company" invisible="context.get('pop_up')"/>
+                        <field name="company_id" readonly="1" invisible="context.get('pop_up')"/>
                         <field name="currency_id" invisible="1"/>
                         <!-- <field name="payment_type" widget="radio"/> -->
                         <!-- <b><field name="partner_type" nolabel="1" widget="selection" string="" attrs="{'required': [('payment_type', 'in', ('inbound', 'outbound'))], 'readonly': [('state', '!=', 'draft')]}"/></b> -->
@@ -156,7 +156,7 @@
                         <button name="remove_all" string="Remover Todos" states="draft" type="object"/>
                         <button name="%(action_account_payment_group_invoice_wizard)d" string="+ Debit Note" states="draft" type="action" invisible="1"/>
                         <button name="%(action_account_payment_group_invoice_wizard)d" string="+ Credit Note" states="draft" context="{'refund': True}" type="action" invisible="1"/>
-                        <field name="to_pay_move_line_ids" context="{'tree_view_ref': 'account_payment_group.view_move_line_tree'}" domain="[('partner_id.commercial_partner_id', '=', commercial_partner_id),('account_id.internal_type', '=', account_internal_type),('account_id.reconcile', '=', True),('reconciled', '=', False),('full_reconcile_id', '=', False),('company_id', '=', company_id)]"/>
+                        <field name="to_pay_move_line_ids" context="{'tree_view_ref': 'account_payment_group.view_move_line_tree'}" domain="[('partner_id.commercial_partner_id', '=', commercial_partner_id),('account_id.account_type', '=', account_internal_type),('account_id.reconcile', '=', True),('reconciled', '=', False),('full_reconcile_id', '=', False),('company_id', '=', company_id)]"/>
                     </page>
                     <!-- no las pudimos hacer invisibles porque nos da error al venir de una factura y querer hacer las to pay lines tmb invisibles. lo bueno de hacerlas invisibles era que al confirmar se pasaba a las payment lines automaticamente -->
                     <page string="Lineas de pagos" attrs="{'invisible': [('payment_subtype', '=', 'double_validation'), ('state', '=', 'draft')]}">
@@ -172,9 +172,10 @@
                         </p>
                         <button name="add_all" string="Agregar Todos / Refrescar" states="draft" type="object"/>
                         <button name="remove_all" string="Remover Todos" states="draft" type="object"/>
+                        <!-- check: validar este contexto hasta donde viaja, el campo internal_type es reemplazado por account_type -->
                         <button name="%(action_account_payment_group_invoice_wizard)d" string="+ Debit Note" states="draft" type="action" context="{'internal_type': 'debit_note'}" invisible="1"/>
                         <button name="%(action_account_payment_group_invoice_wizard)d" string="+ Credit Note" states="draft" context="{'refund': True}" type="action" invisible="1"/>
-                        <field name="debt_move_line_ids" context="{'tree_view_ref': 'account_payment_group.view_move_line_tree'}" domain="[('partner_id.commercial_partner_id', '=', commercial_partner_id),('account_id.internal_type', '=', account_internal_type),('account_id.reconcile', '=', True),('reconciled', '=', False), ('full_reconcile_id', '=', False),('company_id', '=', company_id)]"/>
+                        <field name="debt_move_line_ids" context="{'tree_view_ref': 'account_payment_group.view_move_line_tree'}" domain="[('partner_id.commercial_partner_id', '=', commercial_partner_id),('account_id.account_type', '=', account_internal_type),('account_id.reconcile', '=', True),('reconciled', '=', False), ('full_reconcile_id', '=', False),('company_id', '=', company_id)]"/>
                     </page>
                     <page string="Pagado" states="posted">
                         <field name="matched_move_line_ids" context="{'payment_group_id': id, 'tree_view_ref': 'account_payment_group.view_move_line_with_matched_tree'}"/>

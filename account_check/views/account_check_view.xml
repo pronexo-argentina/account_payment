@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
-<!--  Checks -->
     <record model="ir.ui.view" id="view_account_check_tree">
         <field name="name">account.check.tree</field>
         <field name="model">account.check</field>
         <field name="priority">100</field>
         <field name="groups_id" eval="[(4, ref('account.group_account_manager'))]"/>
         <field name="arch" type="xml">
-            <tree create="false" string="Checks">
+            <tree string="Checks">
                 <field name="checkbook_id" invisible="context.get('default_type',False) != 'issue_check'"/>
                 <field name="journal_id" invisible="1"/>
                 <field name="name" string="Nombre"/>
@@ -23,18 +21,6 @@
                 <field name="state" string="Estado"/>
                 <field name="owner_name" invisible="context.get('default_type',False) != 'third_check'" string="Nombre del Propietario"/>
                 <field name="currency_id" invisible="1" string="Moneda"/>
-            </tree>
-        </field>
-    </record>
-
-    <record model="ir.ui.view" id="view_account_check_create_tree">
-        <field name="name">account.check.create.tree</field>
-        <field name="model">account.check</field>
-        <field name="groups_id" eval="[(4, ref('account.group_account_manager'))]"/>
-        <field name="inherit_id" ref="view_account_check_tree"/>
-        <field name="arch" type="xml">
-                <tree position="attributes">
-                <attribute name="create">true</attribute>
             </tree>
         </field>
     </record>
@@ -60,6 +46,9 @@
                 <button context="{'default_action_type': 'reject'}" name="%(action_account_check_action_wizard)d" type="action" string="Rechazo Bancario" states="deposited" help="Creará una entrada de cuenta desde la cuenta bancaria a la cuenta de rechazo de la empresa y cambiará el estado del cheque."/>
                 <button context="{'default_action_type': 'reject'}" name="%(action_account_check_action_wizard)d" type="action" string="Rechazo de la Venta" states="selled" help="Creará una entrada de cuenta desde la cuenta de efectivo a la cuenta de rechazo de la empresa y cambiará el estado del cheque."/>
             </header>
+            <p groups="account.group_account_manager" class="alert alert-info" role="alert" style="margin-bottom:0px;" attrs="{'invisible':[('id','!=',False)]}">Recuerde que los cheques se crean con los pagos.<br/><b>Solamente</b> debe crear cheques manualmente para realizar algún <b>ajuste</b> o para la <b>carga incial</b> de los mismos.<br/>Podrá cargar las operaciones correspondientes una vez que haya guardado el cheque.</p>
+            <p groups="account.group_account_manager" class="alert alert-info oe_edit_only" role="alert" style="margin-bottom:0px;" attrs="{'invisible':[('id','=', False)]}"><b>IMPORTANTE:</b> las operaciones de cheques se crean automáticamente con los pagos, transferencias o los botones disponibles sobre el cheque.<br/><b>SOLO</b> debe crear o modificar operaciones para <b>carga de cheques inciales</b> o ajustes sobre <b>circuitos no convencionales.</b></p>
+            <field name="user_is_manager" invisible="1"/>
             <sheet string="Checks">
                 <h1>
                     <field name="name" string="Nombre"/>
@@ -87,7 +76,8 @@
                     </group>
                 </group>
                 <group string="Operaciones">
-                    <field name="operation_ids" nolabel="1" readonly="1">
+                    <!-- check: se agrega attrs, antes se hacia esto por herencia con group_ids -->
+                    <field name="operation_ids" attrs="{'readonly': ['|', ('user_is_manager','=',False),('id','=',False)]}">
                         <tree>
                             <field name="date" string="Fecha"/>
                             <field name="operation" string="Operación" />
@@ -112,26 +102,6 @@
                 <field name="message_ids" widget="mail_thread"/>
             </div>                
             </form>
-        </field>
-    </record> 
-
-    <record model="ir.ui.view" id="view_account_check_create_form">
-        <field name="name">account.check.create.form</field>
-        <field name="model">account.check</field>
-        <field name="inherit_id" ref="view_account_check_form"/>
-        <field name="groups_id" eval="[(4, ref('account.group_account_manager'))]"/>
-        <field name="arch" type="xml">
-                <form position="attributes">
-                <attribute name="create">true</attribute>
-            </form>
-            <sheet position="before">
-                <p class="alert alert-info" role="alert" style="margin-bottom:0px;" attrs="{'invisible':[('id','!=',False)]}">Recuerde que los cheques se crean con los pagos.<br/><b>Solamente</b> debe crear cheques manualmente para realizar algún <b>ajuste</b> o para la <b>carga incial</b> de los mismos.<br/>Podrá cargar las operaciones correspondientes una vez que haya guardado el cheque.</p>
-                <p class="alert alert-info oe_edit_only" role="alert" style="margin-bottom:0px;" attrs="{'invisible':[('id','=', False)]}"><b>IMPORTANTE:</b> las operaciones de cheques se crean automáticamente con los pagos, transferencias o los botones disponibles sobre el cheque.<br/><b>SOLO</b> debe crear o modificar operaciones para <b>carga de cheques inciales</b> o ajustes sobre <b>circuitos no convencionales.</b></p>
-            </sheet>
-            <field name="operation_ids" position="attributes">
-                <attribute name="readonly">0</attribute>
-                <attribute name="attrs">{'readonly':[('id','=',False)]}</attribute>
-            </field>
         </field>
     </record>
 

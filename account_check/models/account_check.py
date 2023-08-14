@@ -261,10 +261,13 @@ class AccountCheck(models.Model):
         related='company_id.currency_id',
         string='Moneda de la empresa',
     )
+    # check: se agrega este campo como helper para la vista
+    user_is_manager = fields.Boolean(compute='_compute_is_manager')
 
-
-
-
+    def _compute_is_manager(self):
+        for rec in self:
+            rec.user_is_manager = self.env.user.has_group("account.group_account_manager")
+        
     def get_bank_vals(self, action, journal):
         self.ensure_one()
         # TODO improove how we get vals, get them in other functions

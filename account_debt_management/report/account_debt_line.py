@@ -15,7 +15,7 @@ class AccountDebtLine(models.Model):
             'user_id',
         ],
         'account.move': [
-            'l10n_latam_document_type_id', 'name',
+            'l10n_latam_document_type_id', 'document_number',
         ],
         'account.move.line': [
             'account_id', 'debit', 'credit', 'date_maturity', 'partner_id',
@@ -30,7 +30,7 @@ class AccountDebtLine(models.Model):
         "litigation with the associated partner"
     )
     document_type_id = fields.Many2one(
-        'account.document.type', # check: l10n_latam.document.type
+        'account.document.type',
         'Tipo Documento',
         readonly=True
     )
@@ -93,8 +93,8 @@ class AccountDebtLine(models.Model):
         readonly=True
     )
     internal_type = fields.Selection([
-        ('asset_receivable', 'Receivable'),
-        ('liability_payable', 'Payable')],
+        ('receivable', 'Receivable'),
+        ('payable', 'Payable')],
         'Tipo',
         readonly=True,
     )
@@ -114,11 +114,11 @@ class AccountDebtLine(models.Model):
         'Cliente/Proveedor',
         readonly=True
     )
-    # account_type = fields.Many2one(
-    #     'account.account.type',
-    #     'Account Type',
-    #     readonly=True
-    # )
+    account_type = fields.Many2one(
+        'account.account.type',
+        'Account Type',
+        readonly=True
+    )
     company_id = fields.Many2one(
         'res.company',
         'Empresa',
@@ -323,14 +323,14 @@ class AccountDebtLine(models.Model):
                 -- l.reconcile_partial_id as reconcile_partial_id,
                 l.partner_id as partner_id,
                 am.company_id as company_id,
-                a.account_type as internal_type,
+                a.internal_type as internal_type,
                 -- am.journal_id as journal_id,
                 -- p.fiscalyear_id as fiscalyear_id,
                 -- am.period_id as period_id,
                 l.account_id as account_id,
                 --l.analytic_account_id as analytic_account_id,
                 -- a.internal_type as type,
-                -- a.user_type_id as account_type,
+                a.user_type_id as account_type,
                 l.currency_id as currency_id,
                 sum(l.amount_currency) as amount_currency,
                 sum(l.amount_residual_currency) as amount_residual_currency,
@@ -349,13 +349,11 @@ class AccountDebtLine(models.Model):
                     am.l10n_latam_document_type_id=dt.id)
             WHERE
                 am.state != 'draft' and
-                a.account_type IN ('asset_payable', 'liability_receivable')
+                a.internal_type IN ('payable', 'receivable')
             GROUP BY
                 l.partner_id, am.company_id, l.account_id, l.currency_id,
                 l.full_reconcile_id,
-                a.account_type, 
-                -- a.user_type_id, 
-                am.name, am.move_type,
+                a.internal_type, a.user_type_id, am.name, am.move_type,
                 am.l10n_latam_document_type_id %s
                 -- dt.doc_code_prefix, am.document_number
         """ % params

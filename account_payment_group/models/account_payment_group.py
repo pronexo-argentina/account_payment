@@ -7,12 +7,12 @@ _logger = logging.getLogger(__name__)
 
 
 MAP_PARTNER_TYPE_ACCOUNT_TYPE = {
-    'customer': 'asset_receivable',
-    'supplier': 'liability_payable',
+    'customer': 'receivable',
+    'supplier': 'payable',
 }
 MAP_ACCOUNT_TYPE_PARTNER_TYPE = {
-    'asset_receivable': 'customer',
-    'liability_payable': 'supplier',
+    'receivable': 'customer',
+    'payable': 'supplier',
 }
 
 
@@ -553,7 +553,6 @@ class AccountPaymentGroup(models.Model):
     @api.depends('partner_type')
     def _compute_account_internal_type(self):
         for rec in self:
-            rec.account_internal_type = False
             if rec.partner_type:
                 rec.account_internal_type = MAP_PARTNER_TYPE_ACCOUNT_TYPE[
                     rec.partner_type]
@@ -635,7 +634,7 @@ class AccountPaymentGroup(models.Model):
         return [
             ('partner_id.commercial_partner_id', '=',
                 self.commercial_partner_id.id),
-            ('account_id.account_type', '=',
+            ('account_id.internal_type', '=',
                 self.account_internal_type),
             ('account_id.reconcile', '=', True),
             ('move_id.move_type', 'in', ['out_invoice','out_refund','in_invoice','in_refund']),
@@ -662,7 +661,7 @@ class AccountPaymentGroup(models.Model):
         to_pay_move_lines = self.env['account.move.line'].browse(
             to_pay_move_line_ids).filtered(lambda x: (
                 x.account_id.reconcile and
-                x.account_id.account_type in ('asset_receivable', 'liability_payable')))
+                x.account_id.internal_type in ('receivable', 'payable')))
 
         if self._context.get('from_invoice') == 'yes':
             invoice = self.env['account.move'].browse(self._context.get('invoice_id'))
@@ -693,7 +692,7 @@ class AccountPaymentGroup(models.Model):
                     'No se pueden mandar líneas de pagos a diferentes Contactos'))
 
             internal_type = to_pay_move_lines.mapped(
-                'account_id.account_type')
+                'account_id.internal_type')
             if len(internal_type) != 1:
                 raise ValidationError(_(
                     'No se pueden mandar líneas de pagos desde diferentes Contactos'))
@@ -820,8 +819,8 @@ class AccountPaymentGroup(models.Model):
 
             #counterpart_aml = rec.payment_ids.mapped('move_line_ids').filtered(
             counterpart_aml = rec.payment_ids.mapped('invoice_line_ids').filtered(
-                lambda r: not r.reconciled and r.account_id.account_type in (
-                    'liability_payable', 'asset_receivable'))
+                lambda r: not r.reconciled and r.account_id.internal_type in (
+                    'payable', 'receivable'))
 
             # porque la cuenta podria ser no recivible y ni conciliable
             # (por ejemplo en sipreco)

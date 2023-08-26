@@ -32,9 +32,7 @@ class AccountJournal(models.Model):
             'account_payment_method_in_withholding')
         for rec in self:
             rec.withholding_journal = False
-            # check: en la version 16 ahora el campo 'inbound_payment_method_line_ids' hace referencia al modelo nuevo
-            # account.payment.method.line, lo que genera inconsistencia al hacer esta comparación.
-            if payment_in_method in rec.inbound_payment_method_line_ids.mapped('payment_method_id') or \
-                    payment_out_method in rec.outbound_payment_method_line_ids.mapped('payment_method_id'):
+            if payment_in_method in rec.inbound_payment_method_line_ids or \
+                    payment_out_method in rec.outbound_payment_method_line_ids:
                 rec.withholding_journal = True
 
